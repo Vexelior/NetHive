@@ -6,12 +6,11 @@
         xmlns:lc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
         mc:Ignorable="d"
         Title="NetHive" Height="500" Width="900"
-        Background="#23272F"
+        Background="#0e3b66"
         WindowStartupLocation="CenterScreen"
-        FontFamily="Segoe UI"
+        FontFamily="Segue UI"
         FontSize="14">
     <Window.Resources>
-        <!-- Accent color for highlights -->
         <SolidColorBrush x:Key="AccentBrush" Color="#4F8EF7"/>
         <Style TargetType="TextBox">
             <Setter Property="Background" Value="#2D323C"/>
@@ -37,7 +36,7 @@
             <Setter Property="Margin" Value="0,0,0,0"/>
         </Style>
     </Window.Resources>
-    <Grid Margin="20">
+    <Grid Margin="32">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -45,40 +44,37 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Text="NetHive"
-                   FontWeight="Bold"
-                   FontSize="22"
-                   Margin="0,0,0,16"
-                   Foreground="{StaticResource AccentBrush}"/>
-
-        <TextBox Grid.Row="1"
-                 Width="300"
+        <!-- Filter TextBox -->
+        <TextBox
+            Grid.Row="0" Width="300"
                  HorizontalAlignment="Left"
                  VerticalAlignment="Top"
                  Text="{Binding DnsFilterText, UpdateSourceTrigger=PropertyChanged}"
-                 ToolTip="Filter by DNS or IP"/>
+                 ToolTip="Filter by DNS or IP" Margin="0,-24,0,0" Height="25" RenderTransformOrigin="0.526,6.176"/>
 
-        <lc:CartesianChart Grid.Row="2"
+        <!-- Chart -->
+        <lc:CartesianChart
                            Series="{Binding NetworkSeries}"
                            XAxes="{Binding XAxes}"
                            YAxes="{Binding YAxes}"
                            Height="220"
-                           Margin="0,0,0,10"/>
+                           Margin="0,16,0,0" Grid.Row="0" Grid.RowSpan="3"/>
 
+        <!-- Packet List -->
         <Border Grid.Row="3"
                 Background="#2D323C"
                 CornerRadius="6"
                 Padding="6"
                 BorderBrush="{StaticResource AccentBrush}"
-                BorderThickness="1">
+                BorderThickness="1"
+                Margin="0,10,0,0">
             <ListBox ItemsSource="{Binding FilteredSniffedPackets}"
                      FontFamily="Consolas"
                      FontSize="13"
                      Background="Transparent"
                      BorderThickness="0"
                      Foreground="White"
-                     Height="150"
-                     />
+                     Height="150"/>
         </Border>
     </Grid>
 </Window>
