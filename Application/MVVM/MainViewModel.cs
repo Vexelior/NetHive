@@ -10,10 +10,7 @@ using PacketDotNet;
 using SharpPcap;
 using System.Net;
 using System.Collections.Concurrent;
-using System.Threading.Tasks;
 using System.ComponentModel;
-using System.Linq;
-using System.Collections.Generic;
 
 namespace Application.MVVM;
 
@@ -26,7 +23,7 @@ public class MainViewModel : INotifyPropertyChanged
     private readonly LineSeries<double> _uploadSeries;
     private readonly LineSeries<double> _downloadSeries;
     private readonly Timer _timer;
-    private ICaptureDevice _snifferDevice;
+    private ICaptureDevice? _snifferDevice;
 
     public Queue<double> UploadValues { get; } = new();
     public Queue<double> DownloadValues { get; } = new();
@@ -35,18 +32,36 @@ public class MainViewModel : INotifyPropertyChanged
 
     private readonly ConcurrentDictionary<IPAddress, string> _dnsCache = new();
 
+    // Device selection properties
+    public ObservableCollection<ICaptureDevice> AvailableDevices { get; } = new();
+    private ICaptureDevice? _selectedDevice;
+    public ICaptureDevice? SelectedDevice
+    {
+        get => _selectedDevice;
+        set
+        {
+            if (_selectedDevice != value)
+            {
+                _selectedDevice = value;
+                OnPropertyChanged(nameof(SelectedDevice));
+                RestartPacketSniffing();
+            }
+        }
+    }
+
     private string _dnsFilterText = string.Empty;
     public string DnsFilterText
     {
         get => _dnsFilterText;
         set
         {
-            if (_dnsFilterText != value)
+            if (_dnsFilterText == value)
             {
-                _dnsFilterText = value;
-                OnPropertyChanged(nameof(DnsFilterText));
-                OnPropertyChanged(nameof(FilteredSniffedPackets));
+                return;
             }
+            _dnsFilterText = value;
+            OnPropertyChanged(nameof(DnsFilterText));
+            OnPropertyChanged(nameof(FilteredSniffedPackets));
         }
     }
 
@@ -88,7 +103,13 @@ public class MainViewModel : INotifyPropertyChanged
         _timer.Elapsed += OnTimerElapsed;
         _timer.Start();
 
-        Task.Run(StartPacketSniffing);
+        // Populate available devices
+        foreach (var dev in CaptureDeviceList.Instance)
+            AvailableDevices.Add(dev);
+
+        // Optionally select the first device by default
+        if (AvailableDevices.Count > 0)
+            SelectedDevice = AvailableDevices[0];
     }
 
     private long _lastUpload = 0;
@@ -130,17 +151,24 @@ public class MainViewModel : INotifyPropertyChanged
         });
     }
 
-    private void StartPacketSniffing()
+    private void RestartPacketSniffing()
     {
-        var devices = CaptureDeviceList.Instance;
-        if (devices.Count < 1)
+        // Stop previous device if running
+        if (_snifferDevice != null)
         {
-            Console.WriteLine("No devices found.");
-            return;
+            try
+            {
+                _snifferDevice.OnPacketArrival -= OnPacketArrival;
+                _snifferDevice.StopCapture();
+                _snifferDevice.Close();
+            }
+            catch { }
         }
 
-        _snifferDevice = devices.FirstOrDefault(x => x.Description.Equals("Realtek PCIe GbE Family Controller", StringComparison.CurrentCultureIgnoreCase)) ?? throw new InvalidOperationException("No suitable sniffing device found.");
+        if (SelectedDevice == null)
+            return;
 
+        _snifferDevice = SelectedDevice;
         _snifferDevice.OnPacketArrival += OnPacketArrival;
         _snifferDevice.Open(DeviceModes.Promiscuous, 1000);
         _snifferDevice.StartCapture();

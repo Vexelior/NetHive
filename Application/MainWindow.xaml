@@ -12,13 +12,33 @@
         FontSize="14">
     <Window.Resources>
         <SolidColorBrush x:Key="AccentBrush" Color="#4F8EF7"/>
-        <Style TargetType="TextBox">
-            <Setter Property="Background" Value="#2D323C"/>
-            <Setter Property="Foreground" Value="White"/>
+        <Style TargetType="ComboBox">
+            <Setter Property="Background" Value="Black"/>
+            <Setter Property="Foreground" Value="Black"/>
             <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="8,4"/>
             <Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
+        <!-- ComboBoxItem style for black background and white text -->
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="Black"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Style.Triggers>
+                <Trigger Property="IsHighlighted" Value="True">
+                    <Setter Property="Background" Value="#333"/>
+                    <Setter Property="Foreground" Value="Black"/>
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+                    <Setter Property="Foreground" Value="Black"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
         <Style TargetType="ListBox">
             <Setter Property="Background" Value="#23272F"/>
@@ -44,21 +64,24 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Filter TextBox -->
-        <TextBox
-            Grid.Row="0" Width="300"
-                 HorizontalAlignment="Left"
-                 VerticalAlignment="Top"
-                 Text="{Binding DnsFilterText, UpdateSourceTrigger=PropertyChanged}"
-                 ToolTip="Filter by DNS or IP" Margin="0,-24,0,0" Height="25" RenderTransformOrigin="0.526,6.176"/>
+        <!-- Device Selection ComboBox -->
+        <ComboBox Width="300"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            ItemsSource="{Binding AvailableDevices}"
+            SelectedItem="{Binding SelectedDevice, Mode=TwoWay}"
+            DisplayMemberPath="Description"
+            ToolTip="Select network device"
+            Height="25" Margin="0,-17,0,0"/>
 
         <!-- Chart -->
         <lc:CartesianChart
-                           Series="{Binding NetworkSeries}"
-                           XAxes="{Binding XAxes}"
-                           YAxes="{Binding YAxes}"
-                           Height="220"
-                           Margin="0,16,0,0" Grid.Row="0" Grid.RowSpan="3"/>
+            Series="{Binding NetworkSeries}"
+            XAxes="{Binding XAxes}"
+            YAxes="{Binding YAxes}"
+            Margin="0,8,0,179"
+            Grid.Row="2"
+            Grid.RowSpan="2"/>
 
         <!-- Packet List -->
         <Border Grid.Row="3"
